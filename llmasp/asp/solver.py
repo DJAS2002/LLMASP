@@ -3,8 +3,29 @@ Solver module for integrating with clingo and dumbo-asp.
 """
 
 from clingo import Control
-from dumbo_asp.primitives.models import Model
+# from dumbo_asp.primitives.models import Model
 from typing import List, Tuple, Any
+
+
+# Minimal replacement for dumbo_asp Model, since we want to avoid the dependency for now.
+class Model:
+    def __init__(self, atoms: list):
+        self._atoms = atoms
+
+    @staticmethod
+    def of_atoms(symbols) -> "Model":
+        return Model(list(symbols))
+
+    @staticmethod
+    def empty() -> "Model":
+        return Model([])
+
+    def __len__(self):
+        return len(self._atoms)
+
+    @property
+    def as_facts(self) -> str:
+        return "\n".join(f"{atom}." for atom in self._atoms)
 
 
 def logger(code, msg):

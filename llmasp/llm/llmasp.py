@@ -370,9 +370,27 @@ class LLMASP(AbstractLLMASP):
                 single_pass=single_pass
             )
             logs.append(f"extracted facts: {created_facts}")
-            print(f"extracted facts: {created_facts}")
-            
+
+            if verbose == 0:
+                print()
+
+                print(f"Input: {user_input}\n")
+                print(f"Extracted facts:\n{created_facts}\n")
             # Solve ASP program
+            elif verbose == 1:
+                print()
+                print(f"\nASP user_input BEGIN ----------------")
+                print(f"{user_input}\n")
+                print(f"\nASP created_facts BEGIN ----------------")
+                print(f"{created_facts}\n")
+                print(f"\nASP asp_input BEGIN ----------------")
+                print(f"{asp_input}\n")
+                print(f"\nASP history BEGIN ----------------")
+                print(f"{history}\n")
+                print(f"\nASP input END ------------------\n\n")
+            else:
+                print(f"extracted facts: {created_facts}")
+
             result, interrupted, satisfiable = self.solver.solve(asp_input)
             if not result:
                 logs.extend(["answer set: not found", "out: not found"])
@@ -380,6 +398,10 @@ class LLMASP(AbstractLLMASP):
             
             # Convert back to natural language
             logs.append(f"answer set: {result}")
+            if verbose == 1:
+                print(f"\nASP solver result BEGIN ----------------")
+                print(f"{result}\n")
+                print(f"\nASP solver result END ----------------\n\n")
             response, _ = self.asp_to_natural(result, history, use_history=use_history)
             logs.append(f"output: {response}")
             

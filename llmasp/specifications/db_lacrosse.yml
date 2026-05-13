@@ -1,0 +1,9 @@
+database: |
+  numberofgames(2,men;3,women).
+  fieldcapacity(2,Field):- homeField(_,Field).
+  maxgamesperround(2,men;2,women).
+  mingamesperround(2,men;2,women).
+  team(t1,men;t2,men;t3,men;t4,men).
+  league(men).
+  potentialGameDay(1;2;3;4;5;6;8;9;10;11;12;13).
+  

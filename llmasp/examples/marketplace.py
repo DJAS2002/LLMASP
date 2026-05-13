@@ -11,6 +11,7 @@ def marketplace_example(model: str, server: str):
     Run the marketplace example with a sample user input.
     """
     user_input = "I would like some cooking ideas for a dessert with apples and for a main plate with meat."
+    user_input = "I would like some cooking ideas for a dessert with apples and for a main plate with meat."
     llm = LLMHandler(model, server)
     solver = Solver()
     llmasp = LLMASP("./specifications/application_marketplace.yml", "./specifications/behavior_translator_v2.yml", llm, solver)

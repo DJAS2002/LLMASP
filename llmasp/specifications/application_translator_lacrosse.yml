@@ -1,0 +1,88 @@
+preprocessing:
+- _: You are an assistant for a lacrosse planner. Teams, playing days, fields, leagues, rounds will be talked about.
+- playingday_request("team"): | 
+    List all the playing days for a given team.
+- playing_request("team", "day"): |
+    Confirm if the given team is playing on the given day. If the team is not playing on that day, say that the team is not playing on that day. Create only this single atom.
+
+database: ./specifications/db_lacrosse.yml
+
+knowledge_base: | 
+  
+  homeField(field(X),X):-team(X,_).
+  
+  {playsHome(X,D,F,L,N): team(X,L)}1:-homeField(_,F), potentialGameDay(D),N=1..M, maxgamesperround(M,L), league(L).
+  {playsAway(X,D,F,L,N): team(X,L)}1:-homeField(_,F), potentialGameDay(D),N=1..M, maxgamesperround(M,L), league(L).
+  
+  
+  %Home and away team are different
+  :- playsHome(X,D,F,L,N), playsAway(X,D,F,L,N).
+  
+  
+  % Helper predicate plays/4.
+  plays(X,D,F,L,N):- playsHome(X,D,F,L,N).
+  plays(X,D,F,L,N):- playsAway(X,D,F,L,N).
+  
+  % Helper predicate plays/5.
+  plays(X,Y,D,F,L,N):- playsHome(X,D,F,L,N),playsAway(Y,D,F,L,N).
+  
+  %Respect number of match-ups per tournament
+  :- league(L), team(X,L), team(Y,L), X!=Y, not N{plays(X,Y,_,_,L,_);plays(Y,X,_,_,L,_)}N, numberofgames(N,L).
+  
+  %Respect field capacity
+  :- fieldcapacity(M,F), potentialGameDay(D), M+1{plays(_,_,D,F,L,N)}.
+  
+  
+  % No games on same day at different location
+  :- plays(X,D,F1,L,N1), plays(X,D,F2,L,N2), F1<F2.
+  
+  %Respect maximum games per round
+  :- maxgamesperround(M,L), potentialGameDay(D), homeField(_, F), M+1{plays(X,Y,D,F,L,_)}.
+  
+  
+  % Home and away are different, and actually teams.
+  :- playsHome(X,D,F,L,N), not playsAway(_,D,F,L,N).
+  :- playsAway(X,D,F,L,N), not playsHome(_,D,F,L,N).
+  
+  
+  % resepect minimum number of games per round
+  hasGames(D,F,L) :- plays(_,_,D,F,L,_).
+  :- mingamesperround(M,L), hasGames(D,F,L), {plays(X,Y,D,F,L,N)}M-1.
+  
+  
+  %every match is mirrored
+  :- plays(X,Y,_,_,L,_), not plays(Y,X,_,_,L,_).
+  
+  
+  % respect number of numberofgames per tournament
+  :- team(X,L), team(Y,L), X<Y, not N{plays(X,Y,_,_,L,_);plays(Y,X,_,_,L,_)}N, numberofgames(N,L).
+  
+  % Max one game per weekend
+  :- plays(X,D1,_,L,_), plays(X,D2,_,L,_), D1=D2+1.
+  :- plays(X,D,_,L,T1), plays(X,D,_,L,T2), T1<T2.
+  :- plays(X,D,F1,L,_), plays(X,D,F2,L,_), F1<F2.
+  
+  % Requested team is playing on a day
+  % {team_plays_on_day(X,D):plays(X,D,_,_,_)} :- 
+  %  playingday_request(X,D).
+  
+  team_playing_days(X,D) :- playingday_request(X), plays(X,D,_,_,_).
+  team_is_playing(X,D) :- playing_request(X,D).
+
+  #show team_playing_days/2.
+  #show team_is_playing/2.
+
+postprocessing:
+- _: | 
+    You are a lacrosse competition planner.
+    Your priority is to create a valid schedule and answer requests about the schedule.
+    Do not mention any team, field, league or round that is not explicitly provided to you before.
+    Do not mention any information that is not explicitly provided to you before.
+    If there are no teams playing say that no matches are held in that weekend..
+    Always limit your responses to a maximum of 100 characters.
+- team_playing_days("team","day"): | 
+        Say that "team" is playing on "day".
+- team_is_playing("team","day"): | 
+        Say yes the team "team" is indeed playing on "day". If no days are found say that "team" is not playing on "day".
+    
+
