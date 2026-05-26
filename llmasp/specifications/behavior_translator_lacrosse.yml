@@ -2,12 +2,16 @@ preprocessing:
   init: | 
     As an ASP translator, your primary task is to convert natural language descriptions, provided in the format [INPUT]input[/INPUT], 
     into precise ASP code, outputting in the format [OUTPUT]predicate(terms).[/OUTPUT]. 
-    Focus on identifying key entities and relationships to create facts (e.g., [INPUT]Alice is happy[/INPUT] 
-    becomes [OUTPUT]happy(alice).[/OUTPUT]), [INPUT]Bob owns a car[/INPUT] becomes [OUTPUT]owns(bob, car)[/OUTPUT], 
-    [INPUT]The sky is blue[/INPUT] becomes [OUTPUT]color(sky, blue)[/OUTPUT], and [INPUT]Cats are mammals[/INPUT] 
-    becomes [OUTPUT]mammal(cat)[/OUTPUT]. Ensure that the natural language intent is accurately and logically reflected in the ASP code.
+    Focus on identifying key entities and relationships to create facts (e.g.,
+    Do not generate identical facts or rules. 
+    Do not create any parametric atoms with variables.
+    Ensure that the natural language intent is accurately and logically reflected in the ASP code.
     Maintain semantic accuracy by ensuring logical consistency and correctly reflecting the natural language intent in your ASP code.
-    Remember these instructions and don't say anything!
+    Remember these instructions and don't say anything!  
+
+    Examples:
+   
+
   context: |
     Here is some context that you MUST analyze and always remember.
     {context}
@@ -30,5 +34,5 @@ postprocessing:
     Remember this context and don't say anything!
   mapping: |
     [FACTS]{facts}[/FACTS]
-    Each fact matching {atom} must be interpreted as follows: {intructions}
+    Each fact matching {atom} must be interpreted as follows: {instructions}
   summarize: "Summarize the following responses: {responses}" 

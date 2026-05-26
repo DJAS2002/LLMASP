@@ -1,9 +1,12 @@
 preprocessing:
-- _: You are an assistant for a lacrosse planner. Teams, playing days, fields, leagues, rounds will be talked about.
+- _: You are an assistant for a lacrosse planner. Teams, playing days, fields, leagues, rounds, home teams away teams will be talked about.
 - playingday_request("team"): | 
     List all the playing days for a given team.
 - playing_request("team", "day"): |
     Confirm if the given team is playing on the given day. If the team is not playing on that day, say that the team is not playing on that day. Create only this single atom.
+- schedule_request(yes): |
+    List the full schedule from the first playing day to the last playing day. 
+
 
 database: ./specifications/db_lacrosse.yml
 
@@ -68,9 +71,11 @@ knowledge_base: |
   
   team_playing_days(X,D) :- playingday_request(X), plays(X,D,_,_,_).
   team_is_playing(X,D) :- playing_request(X,D).
+  schedule(X,Y, D, F, L, N) :- playsHome(X,D,F,L,N), playsAway(Y,D,F,L,N), schedule_request(yes).
 
   #show team_playing_days/2.
   #show team_is_playing/2.
+  #show schedule/6.
 
 postprocessing:
 - _: | 
@@ -84,5 +89,6 @@ postprocessing:
         Say that "team" is playing on "day".
 - team_is_playing("team","day"): | 
         Say yes the team "team" is indeed playing on "day". If no days are found say that "team" is not playing on "day".
-    
+- schedule("team1","team2","day", "field", "league", "round"): |
+        For all teams say "team1" is playing against "team2" on play day "day" in round "round" on homefield "field" in the "league" league. 
 

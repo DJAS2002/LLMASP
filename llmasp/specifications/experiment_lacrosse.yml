@@ -1,0 +1,23 @@
+meta:
+  auteur: "Dietmar Serbée"
+  experiment: "Influence off one shot examples on input questions for Lacrosse toy encoding and OLLAMA LLM"
+  datum: "2026-05-26"
+
+user_inputs:
+  - "give a list of days that teams t1, t2, t3 and t4 play."
+  - "Is team t2 playing on day 3 and is team t3 playing on day 4?"
+  - "When is team 't1' playing?"
+  - "Give me the full schedule"
+
+prompt_templates: | 
+    ,
+    [INPUT]Alice is happy[/INPUT] becomes [OUTPUT]happy(alice)[/OUTPUT]), 
+    [INPUT]Bob owns a car[/INPUT] becomes [OUTPUT]owns(bob, car)[/OUTPUT], 
+    [INPUT]The sky is blue[/INPUT] becomes [OUTPUT]color(sky, blue)[/OUTPUT],
+    [INPUT]Cats are mammals[/INPUT] becomes [OUTPUT]mammal(cat)[/OUTPUT],),
+    [INPUT]Add team t2 to the mens league[/INPUT] becomes [OUTPUT]team(t2,men)[/OUTPUT],
+    [INPUT]Add playing day 12[/INPUT] becomes [OUTPUT]potentialGameDay(12)[/OUTPUT],
+    [INPUT]Add playing days 15 till 20[/INPUT] becomes [OUTPUT]potentialGameDay(15..20)[/OUTPUT],
+    [INPUT]What is the full schedule?[/INPUT] becomes [OUTPUT]schedule_request(yes)[/OUTPUT],
+    [INPUT]When is team goblins playing?[/INPUT] becomes [OUTPUT]playingday_request(goblins)[/OUTPUT],
+    [INPUT]Is team lizards playing on day 10?[/INPUT] becomes [OUTPUT]playing_request(lizards,10)[/OUTPUT],

@@ -6,10 +6,14 @@ import re
 import logging
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any, Tuple
+from colorama import Fore, Back, Style, init as colorama_init, just_fix_windows_console
+
+from pyarrow import null
 from yaml.error import YAMLError
 
 from .abstract_llmasp import AbstractLLMASP
 from .llm_handler import LLMHandler
+from .fileparser import check_asp_input, check_grounding
 
 logger = logging.getLogger(__name__)
 
@@ -360,24 +364,49 @@ class LLMASP(AbstractLLMASP):
         Raises:
             LLMASPError: If pipeline execution fails
         """
+
+        def cc(text, fg="", bg=""):
+            return bg + fg + text + Style.RESET_ALL
+
+        just_fix_windows_console()
+        logs = []
+
         try:
-            logs = []
-            logs.append(f"input: {user_input}")
-            
+            logs.append(cc(f"\ninput:",fg=Fore.GREEN)+f"\n{user_input}")
+
+
+
             # Convert to ASP
             created_facts, asp_input, history, _ = self.natural_to_asp(
                 user_input, 
                 single_pass=single_pass
             )
-            logs.append(f"extracted facts: {created_facts}")
+            logs.append(f"{cc('extracted facts:',Fore.YELLOW,"")}\n{created_facts}")
 
-            if verbose == 0:
-                print()
+            errors = check_asp_input(asp_input=asp_input, verbose=verbose)
 
-                print(f"Input: {user_input}\n")
-                print(f"Extracted facts:\n{created_facts}\n")
-            # Solve ASP program
-            elif verbose == 1:
+            if errors:
+                print(cc(len(errors), f"{len(errors)} errors in generated code!"),Fore.RED)
+                return None
+            else:
+                print(cc("Generated code syntactically correct!", fg=Fore.GREEN))
+
+
+            grouding_errors = check_grounding(asp_input=asp_input)
+
+            if grouding_errors:
+                print(f"{cc('extracted facts:',Fore.YELLOW,"")}\n{created_facts}\n\n")
+                print(cc("Grounding errors:",fg=Fore.RED))
+                for code, message in grouding_errors:
+                    print(f"{code}: {message}")
+
+            if verbose == 1:
+            #     print()
+            #
+            #     print(f"Input: {user_input}\n")
+            #     print(f"Extracted facts:\n{created_facts}\n")
+            # # Solve ASP program
+            # elif verbose == 1:
                 print()
                 print(f"\nASP user_input BEGIN ----------------")
                 print(f"{user_input}\n")
@@ -388,8 +417,8 @@ class LLMASP(AbstractLLMASP):
                 print(f"\nASP history BEGIN ----------------")
                 print(f"{history}\n")
                 print(f"\nASP input END ------------------\n\n")
-            else:
-                print(f"extracted facts: {created_facts}")
+            # else:
+            #     print(f"extracted facts: \n{created_facts}")
 
             result, interrupted, satisfiable = self.solver.solve(asp_input)
             if not result:
@@ -397,21 +426,21 @@ class LLMASP(AbstractLLMASP):
                 return None if not verbose else ""
             
             # Convert back to natural language
-            logs.append(f"answer set: {result}")
+            logs.append(cc("answer set:",fg = Fore.CYAN)+f"\n{result}")
             if verbose == 1:
                 print(f"\nASP solver result BEGIN ----------------")
                 print(f"{result}\n")
                 print(f"\nASP solver result END ----------------\n\n")
             response, _ = self.asp_to_natural(result, history, use_history=use_history)
-            logs.append(f"output: {response}")
+            logs.append(cc("Output from LLM:",fg=Fore.BLUE)+f"\n{response}")
             
-            if verbose == 1:
+            if verbose == 0:
+
                 print("\n\n".join(logs))
                 
             return response
             
         except Exception as e:
             logger.error(f"Pipeline execution failed: {e}")
-            if verbose == 1:
-                print(f"Error: {e}")
+            print("\n\n".join(logs))
             return None
